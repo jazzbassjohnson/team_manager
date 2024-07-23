@@ -1,2 +1,5 @@
 # team_manager
-A basic platform for managing a team member
+A basic platform for managing team members.
+
+
+Setup details coming...
