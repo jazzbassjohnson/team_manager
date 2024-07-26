@@ -24,7 +24,7 @@ COPY . .
 EXPOSE 8000
 
 # Collect static files
-# RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput
 
 # Run the application
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
