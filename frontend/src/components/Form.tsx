@@ -1,79 +1,105 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/context/constants.ts';
-import { Label } from '@/components/ui/label.tsx';
-import { Input } from '@/components/ui/input.tsx';
 import api from '@/api.ts';
 import { Button } from '@/components/ui/button.tsx';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 
 type FormProps = {
-    route: string;
-    method: string;
+  route: string;
 };
 
-function Form({ route, method }: FormProps) {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+// Define the schema for the login form
+const loginFormSchema = z.object({
+  username: z.string().nonempty(),
+  password: z.string().nonempty(),
+});
 
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
+function LoginForm({ route }: FormProps) {
+  // Set up the form state
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const [loading, setLoading] = useState(false);
-    const title = method === 'POST' ? 'Register' : 'Login';
+  // Create a form with validation
+  const form = useForm({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+    },
+  });
 
-    const navigate = useNavigate();
-    const handleSubmit = async (e: React.FormEvent) => {
-        setLoading(true);
-        e.preventDefault();
-        try {
-            const response = await api.post(route, {
-                email,
-                password,
-            });
+  const handleSubmit = async (values: z.infer<typeof loginFormSchema>) => {
+    setLoading(true);
+    try {
+      const { username, password } = values;
+      const response = await api.post(route, {
+        username: username,
+        password,
+      });
 
-            if (method === 'login') {
-                if (response.status === 200) {
-                    localStorage.setItem(ACCESS_TOKEN, response.data.access);
-                    localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
-                    navigate('/');
-                } else {
-                    navigate('/login');
-                }
-            }
-        } catch (error) {
-            console.log('error', error);
-            setLoading(false);
-        }
-    };
+      if (response.status === 200) {
+        localStorage.setItem(ACCESS_TOKEN, response.data.access);
+        localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
+        navigate('/');
+      } else {
+        navigate('/login');
+      }
+    } catch (error) {
+      console.log('error', error);
+      setLoading(false);
+    }
+  };
 
-    return (
-        <form onSubmit={handleSubmit} className={'form-container'}>
-            <h1>{title}</h1>
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="email">Username</Label>
-                <Input
-                    type="text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email"
-                    required
-                />
-            </div>
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    required
-                />
-            </div>
-            <Button type="submit" disabled={loading}>
-                Submit
-            </Button>
-        </form>
-    );
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className={'form-container'}
+      >
+        <FormField
+          control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Username</FormLabel>
+              <FormControl>
+                <Input placeholder={'Username'} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          name={'password'}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder={'Password'} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" disabled={loading}>
+          Submit
+        </Button>
+      </form>
+    </Form>
+  );
 }
 
-export default Form;
+export default LoginForm;

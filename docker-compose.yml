@@ -13,7 +13,7 @@ services:
   backend:
     build: ./backend
     container_name: django_backend
-    command: [ 'gunicorn', 'backend.wsgi:application', '--bind', '0.0.0.0:8000' ]
+    command: [ 'gunicorn', 'backend.wsgi:application', '--bind', '0.0.0.0:8000', '--reload' ]
     ports:
       - '8000:8000'
     depends_on:
@@ -24,6 +24,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./backend:/app
+      - /app/venv
   frontend:
     build: ./frontend
     container_name: react_frontend
@@ -36,6 +39,6 @@ services:
     depends_on:
       - backend
     environment:
-      VITE_API_BASE_URL: http://backend:8000
+      VITE_API_URL: http://localhost:8000
 volumes:
   postgres_data:
