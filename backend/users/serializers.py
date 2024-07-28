@@ -17,17 +17,21 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 	def create(self, validated_data):
 		password = validated_data.pop('password', None)
-		if password is None:
-			password = self.generate_temporary_password()
+
 		user = CustomUser(
 			username=validated_data['username'],
 			email=validated_data['email'],
 			first_name=validated_data.get('first_name', ''),
 			last_name=validated_data.get('last_name', '')
 		)
+
+		if password is None:
+			password = self.generate_temporary_password()
+			self.send_temporary_password(user, password)
+
 		user.set_password(password)
 		user.save()
-		self.send_temporary_password(user, password)
+
 		return user
 
 	@staticmethod

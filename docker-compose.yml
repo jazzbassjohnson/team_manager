@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:16
@@ -10,10 +12,11 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+
   backend:
     build: ./backend
     container_name: django_backend
-    command: [ 'gunicorn', 'backend.wsgi:application', '--bind', '0.0.0.0:8000' ]
+    command: [ 'gunicorn', 'backend.wsgi:application', '--bind', '0.0.0.0:8000', '--timeout', '120' ]
     ports:
       - '8000:8000'
     depends_on:
@@ -24,15 +27,15 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    develop:
-      watch:
-        - action: sync
-          path: ./backend
-          service: backend
-          target: /app
     volumes:
       - ./backend:/app
       - /app/venv
+    x-develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+
   frontend:
     build: ./frontend
     container_name: react_frontend
@@ -46,5 +49,11 @@ services:
       - backend
     environment:
       VITE_API_URL: http://localhost:8000
+    x-develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+
 volumes:
   postgres_data:

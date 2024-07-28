@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -14,6 +15,9 @@ CustomUser = get_user_model()
 # Register a new user and create an organization for them
 class UserRegistrationView(generics.CreateAPIView):
 	serializer_class = UserCreateSerializer
+	permission_classes = [
+		AllowAny,
+	]
 
 	def create(self, request, *args, **kwargs):
 		user_serializer = self.get_serializer(data=request.data)
