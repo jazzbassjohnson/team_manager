@@ -14,7 +14,7 @@ class TeamSerializer(serializers.ModelSerializer):
 		return team
 
 
-class AddTeamMemberSerializer(serializers.Serializer):
+class TeamMemberSerializer(serializers.Serializer):
 	team_id = serializers.IntegerField()
 	username = serializers.CharField(max_length=150)
 	email = serializers.EmailField()
@@ -23,18 +23,21 @@ class AddTeamMemberSerializer(serializers.Serializer):
 	last_name = serializers.CharField(max_length=30, required=False)
 	password = serializers.CharField(write_only=True)
 
-	def validate(self, value):
-		# Check if the team exists
+	@staticmethod
+	def validate_role(self, value):
 		try:
-			Team.objects.get(id=value['team_id'])
-		except Team.DoesNotExist:
-			raise serializers.ValidationError("Invalid team")
-
-		try:
-			Role.objects.get(name=value)
+			role = Role.objects.get(name=value)
 		except Role.DoesNotExist:
 			raise serializers.ValidationError("Invalid role")
-		return value
+		return role
+
+	@staticmethod
+	def validate_team_id(self, value):
+		try:
+			team = Team.objects.get(id=value)
+		except Team.DoesNotExist:
+			raise serializers.ValidationError("Invalid team ID")
+		return team
 
 	def create(self, validated_data):
 		user_data = {
@@ -45,12 +48,12 @@ class AddTeamMemberSerializer(serializers.Serializer):
 			'last_name': validated_data.get('last_name', '')
 		}
 
-		user_serializer = UserSerializer(data=user_data)
+		user_serializer = UserCreateSerializer(data=user_data)
 		user_serializer.is_valid(raise_exception=True)
 		user = user_serializer.save()
 
-		team = Team.objects.get(id=validated_data['team_id'])
-		role = Role.objects.get(name=validated_data['role'])
+		team = validated_data['team_id']
+		role = validated_data['role']
 
 		membership = Membership.objects.create(
 			user=user,

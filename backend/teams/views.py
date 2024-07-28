@@ -3,11 +3,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Team
-from .serializers import AddTeamMemberSerializer
+from .serializers import TeamMemberSerializer
 from .serializers import TeamSerializer
 
 
-class TeamListCreateView(generics.ListCreateAPIView):
+class TeamListView(generics.ListCreateAPIView):
 	queryset = Team.objects.all()
 	serializer_class = TeamSerializer
 
@@ -18,7 +18,7 @@ class TeamListCreateView(generics.ListCreateAPIView):
 		return self.queryset.filter(owner=self.request.user)
 
 
-class CreateTeamView(generics.CreateAPIView):
+class TeamView(generics.CreateAPIView):
 	serializer_class = TeamSerializer
 	permission_classes = [IsAuthenticated]
 
@@ -34,8 +34,8 @@ class CreateTeamView(generics.CreateAPIView):
 		}, status=status.HTTP_201_CREATED)
 
 
-class AddTeamMemberView(generics.CreateAPIView):
-	serializer_class = AddTeamMemberSerializer
+class TeamMemberView(generics.CreateAPIView):
+	serializer_class = TeamMemberSerializer
 	permission_classes = [IsAuthenticated]
 
 	def create(self, request, *args, **kwargs):

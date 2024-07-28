@@ -1,8 +1,8 @@
 from django.urls import path
 
-from teams.views import TeamListCreateView, AddTeamMemberView
+from teams.views import TeamListView, TeamMemberView
 
 urlpatterns = [
-	path('teams/', TeamListCreateView.as_view(), name='team_list_create'),
-	path('add_member/', AddTeamMemberView.as_view(), name='add_team_member'),
+	path('teams/', TeamListView.as_view(), name='team_list_create'),
+	path('add_member/', TeamMemberView.as_view(), name='add_team_member'),
 ]
