@@ -6,20 +6,23 @@ from .models import Team
 from .permissions import IsAdmin
 from .serializers import TeamMemberSerializer
 from .serializers import TeamSerializer
+from organizations.models import Organization
 
 
 class TeamListView(generics.ListCreateAPIView):
-	queryset = Team.objects.all()
 	serializer_class = TeamSerializer
+
+	def get_queryset(self):
+		# get authenticated user's organization
+		organization = Organization.objects.filter(owner=self.request.user)
+		# get all teams where the authenticated user is the has a membership
+		return Team.objects.filter(organization=organization[0])
 
 	def perform_create(self, serializer):
 		serializer.save(owner=self.request.user)
 
-	def get_queryset(self):
-		return self.queryset.filter(owner=self.request.user)
 
-
-class TeamView(generics.CreateAPIView):
+class TeamCreateView(generics.CreateAPIView):
 	serializer_class = TeamSerializer
 	permission_classes = [IsAuthenticated]
 
@@ -55,3 +58,14 @@ class TeamMemberView(generics.CreateAPIView):
 			'team': membership.team.name,
 			'role': membership.role.name
 		}, status=status.HTTP_201_CREATED)
+
+
+class TeamDetailView(generics.RetrieveUpdateDestroyAPIView):
+	serializer_class = TeamSerializer
+	permission_classes = [IsAuthenticated]
+
+	def get_queryset(self):
+		pk = self.kwargs['pk']
+		organization = Organization.objects.filter(
+			owner=self.request.user)
+		return Team.objects.filter(organization=organization[0], pk=pk)

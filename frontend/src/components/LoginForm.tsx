@@ -1,10 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/context/constants.ts';
-import api from '@/api.ts';
 import { Button } from '@/components/ui/button.tsx';
 import {
   Form,
@@ -15,10 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-
-type FormProps = {
-  route: string;
-};
+import { AuthContext } from '@/context/AuthContext.tsx';
 
 // Define the schema for the login form
 const loginFormSchema = z.object({
@@ -26,10 +21,11 @@ const loginFormSchema = z.object({
   password: z.string().nonempty(),
 });
 
-function LoginForm({ route }: FormProps) {
+function LoginForm() {
   // Set up the form state
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   // Create a form with validation
   const form = useForm({
@@ -44,20 +40,16 @@ function LoginForm({ route }: FormProps) {
     setLoading(true);
     try {
       const { username, password } = values;
-      const response = await api.post(route, {
-        username: username,
-        password,
-      });
-
-      if (response.status === 200) {
-        localStorage.setItem(ACCESS_TOKEN, response.data.access);
-        localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
-        navigate('/');
-      } else {
-        navigate('/login');
-      }
+      login(username, password)
+        .then(() => {
+          navigate('/');
+        })
+        .catch((error) => {
+          console.error('Failed to login', error);
+        });
     } catch (error) {
       console.log('error', error);
+    } finally {
       setLoading(false);
     }
   };

@@ -1,15 +1,22 @@
 import React, { useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../../context/AuthContext.tsx';
+import { Link, Outlet } from 'react-router-dom';
 
 function NavBar() {
   return (
     <nav>
       <ul>
         <li>
-          <a href="/dashboard">Dashboard</a>
+          <Link to="/dashboard">Dashboard</Link>
         </li>
         <li>
-          <a href="/profile">Profile</a>
+          <Link to="/profile">Profile</Link>
+        </li>
+        <li>
+          <Link to={'/teams'}>Teams</Link>
+        </li>
+        <li>
+          <Link to={'/users'}>Users</Link>
         </li>
       </ul>
     </nav>
@@ -33,6 +40,7 @@ const Dashboard: React.FC = () => {
         <main>
           <h1>Dashboard</h1>
           <p>Welcome {user?.username}</p>
+          <Outlet />
         </main>
       </>
 

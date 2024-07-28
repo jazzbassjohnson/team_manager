@@ -1,11 +1,10 @@
 import React, { createContext, useEffect, useState } from 'react';
-import api from '../api.ts';
+import apiClient from '../api/apiClient.ts';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/context/constants.ts';
 import { jwtDecode } from 'jwt-decode';
 
 interface AuthContextProps {
   isAuthenticated: boolean;
-  user: any;
   login: (username: string, password: string) => Promise<void>;
   register: (
     username: string,
@@ -20,7 +19,6 @@ interface AuthContextProps {
 
 const initialProps: AuthContextProps = {
   isAuthenticated: false,
-  user: null,
   login: async () => {},
   register: async () => {},
   refresh: async () => {},
@@ -36,7 +34,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({
   children,
 }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [user, setUser] = useState(null);
 
   // Check if the user is authenticated
   useEffect(() => {
@@ -64,31 +61,29 @@ const AuthProvider: React.FC<AuthProviderProps> = ({
       await refresh();
     } else {
       setIsAuthenticated(true);
-      const user = localStorage.getItem('user');
-      if (user) {
-        console.log('user', user);
-        setUser(JSON.parse(user));
-      }
     }
   };
 
   const login = async (username: string, password: string) => {
-    const response = await api.post('/token/', {
-      username,
-      password,
-    });
-    const data = response.data;
-    localStorage.setItem('access_token', data.access);
-    localStorage.setItem('refresh_token', data.refresh);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    setUser(data.user);
+    return await apiClient
+      .post('/token/', {
+        username,
+        password,
+      })
+      .then((response) => {
+        const data = response.data;
+        localStorage.setItem(ACCESS_TOKEN, data.access);
+        localStorage.setItem(REFRESH_TOKEN, data.refresh);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setIsAuthenticated(true);
+      });
   };
 
   // Refresh the token
   const refresh = async () => {
     const refreshedToken = localStorage.getItem(REFRESH_TOKEN);
     try {
-      const response = await api.post('/token/refresh/', {
+      const response = await apiClient.post('/token/refresh/', {
         refresh: refreshedToken,
       });
 
@@ -112,7 +107,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({
     email: string,
     password: string
   ) => {
-    const response = await api.post('/user/register/', {
+    const response = await apiClient.post('/user/register/', {
       username,
       first_name: firstName,
       last_name: lastName,
@@ -120,24 +115,19 @@ const AuthProvider: React.FC<AuthProviderProps> = ({
       password,
     });
     const data = response.data;
-    localStorage.setItem('access_token', data.access);
-    localStorage.setItem('refresh_token', data.refresh);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    setUser(data.user);
+    localStorage.setItem(ACCESS_TOKEN, data.access);
+    localStorage.setItem(REFRESH_TOKEN, data.refresh);
   };
 
   const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
-    setUser(null);
+    localStorage.removeItem(ACCESS_TOKEN);
+    localStorage.removeItem(REFRESH_TOKEN);
   };
 
   return (
     <AuthContext.Provider
       value={{
         isAuthenticated: Boolean(isAuthenticated),
-        user,
         login,
         register,
         logout,
