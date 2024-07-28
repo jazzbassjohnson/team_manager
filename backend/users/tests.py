@@ -1,5 +1,5 @@
-import random
 import string
+
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from unittest.mock import patch
@@ -14,39 +14,29 @@ class UserCreateSerializerTests(TestCase):
 	@patch('users.serializers.send_mail')
 	def test_create_user_with_provided_password(self, mock_send_mail):
 		data = {
-			'username': 'testuser',
-			'email': 'testuser@example.com',
-			'password': 'securepassword',
+			'username': 'test_user',
+			'email': 'test_user@example.com',
+			'password': 'secure_password',
 			'first_name': 'First',
 			'last_name': 'Last'
 		}
 		serializer = UserCreateSerializer(data=data)
-		self.assertTrue(serializer.is_valid())
+		self.assertTrue(serializer.is_valid(), serializer.errors)
 		user = serializer.save()
 
 		self.assertIsNotNone(user)
-
-		self.assertEqual(user.username, 'testuser')
-
-		# Ensure the password is hashed when the user is created
-		self.assertNotEqual(user.password, 'securepassword')
-
-		# Check if the hashed password is stored correctly
-		stored_hashed_password = user.password
-
-		# Verify the password using the check_password method
-		self.assertTrue(user.check_password('securepassword'))
-
-		self.assertEqual(user.email, 'testuser@example.com')
+		self.assertEqual(user.username, 'test_user')
+		self.assertTrue(user.check_password('secure_password'))
+		self.assertEqual(user.email, 'test_user@example.com')
 		self.assertEqual(user.first_name, 'First')
 		self.assertEqual(user.last_name, 'Last')
 
 		# Ensure email was sent
 		mock_send_mail.assert_called_once_with(
 			'Your Temporary Password',
-			f'Hello testuser,\n\nYour temporary password is: securepassword\nPlease log in and change your password.',
+			f'Hello test_user,\n\nYour temporary password is: secure_password\nPlease log in and change your password.',
 			'admin@example.com',
-			['testuser@example.com'],
+			['test_user@example.com'],
 			fail_silently=False,
 		)
 
@@ -59,7 +49,7 @@ class UserCreateSerializerTests(TestCase):
 			'last_name': 'Last'
 		}
 		serializer = UserCreateSerializer(data=data)
-		self.assertTrue(serializer.is_valid())
+		self.assertTrue(serializer.is_valid(), serializer.errors)
 		user = serializer.save()
 
 		self.assertIsNotNone(user)

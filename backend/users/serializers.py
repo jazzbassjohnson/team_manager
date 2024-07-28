@@ -8,23 +8,25 @@ CustomUser = get_user_model()
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
+	password = serializers.CharField(write_only=True, required=False)
+
 	class Meta:
 		model = CustomUser
 		fields = ['username', 'email', 'password', 'first_name', 'last_name']
 		extra_kwargs = {'password': {'write_only': True}}
 
-	# Create a new user and send them a temporary password if one is not provided
 	def create(self, validated_data):
 		password = validated_data.pop('password', None)
 		if password is None:
 			password = self.generate_temporary_password()
-		user = CustomUser.objects.create_user(
+		user = CustomUser(
 			username=validated_data['username'],
 			email=validated_data['email'],
-			password=password,
 			first_name=validated_data.get('first_name', ''),
 			last_name=validated_data.get('last_name', '')
 		)
+		user.set_password(password)
+		user.save()
 		self.send_temporary_password(user, password)
 		return user
 
