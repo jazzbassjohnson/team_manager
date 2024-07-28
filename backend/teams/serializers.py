@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from users.serializers import UserCreateSerializer
 from .models import Team, Membership, Role
 
@@ -23,7 +22,6 @@ class TeamMemberSerializer(serializers.Serializer):
 	last_name = serializers.CharField(max_length=30, required=False)
 	password = serializers.CharField(write_only=True)
 
-	@staticmethod
 	def validate_role(self, value):
 		try:
 			role = Role.objects.get(name=value)
@@ -31,7 +29,6 @@ class TeamMemberSerializer(serializers.Serializer):
 			raise serializers.ValidationError("Invalid role")
 		return role
 
-	@staticmethod
 	def validate_team_id(self, value):
 		try:
 			team = Team.objects.get(id=value)
@@ -52,8 +49,8 @@ class TeamMemberSerializer(serializers.Serializer):
 		user_serializer.is_valid(raise_exception=True)
 		user = user_serializer.save()
 
-		team = validated_data['team_id']
-		role = validated_data['role']
+		team = self.validate_team_id(validated_data['team_id'])
+		role = self.validate_role(validated_data['role'])
 
 		membership = Membership.objects.create(
 			user=user,
@@ -62,15 +59,3 @@ class TeamMemberSerializer(serializers.Serializer):
 		)
 
 		return membership
-
-
-class MembershipSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = Membership
-		fields = ['id', 'user', 'team', 'role']
-
-
-class RoleSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = Role
-		fields = '__all__'
