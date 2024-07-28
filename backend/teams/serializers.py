@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from users.serializers import UserSerializer
+from users.serializers import UserCreateSerializer
 from .models import Team, Membership, Role
 
 

@@ -1,14 +1,14 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from users.serializers import UserSerializer
+from users.serializers import UserCreateSerializer
 from .models import Organization
 
 CustomUser = get_user_model()
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
-	owner = UserSerializer()
+	owner = UserCreateSerializer()
 
 	class Meta:
 		model = Organization

@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Team
+from .permissions import IsAdmin
 from .serializers import TeamMemberSerializer
 from .serializers import TeamSerializer
 
@@ -36,7 +37,7 @@ class TeamView(generics.CreateAPIView):
 
 class TeamMemberView(generics.CreateAPIView):
 	serializer_class = TeamMemberSerializer
-	permission_classes = [IsAuthenticated]
+	permission_classes = [IsAuthenticated, IsAdmin]
 
 	def create(self, request, *args, **kwargs):
 		serializer = self.get_serializer(data=request.data)

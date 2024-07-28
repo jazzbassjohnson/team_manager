@@ -7,7 +7,7 @@ from django.core.mail import send_mail
 CustomUser = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserCreateSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = CustomUser
 		fields = ['username', 'email', 'password', 'first_name', 'last_name']
@@ -29,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
 		return user
 
 	@staticmethod
-	def generate_temporary_password(self):
+	def generate_temporary_password():
 		return ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
 	@staticmethod
